@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.33919.361
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LabSpaceStepDriver", "LabSpaceStepDriver.vcxproj", "{4C319615-006D-4199-9BAA-55AA810EF2F2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|ARM = Debug|ARM
+		Debug|ARM64 = Debug|ARM64
+		Release|ARM = Release|ARM
+		Release|ARM64 = Release|ARM64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4C319615-006D-4199-9BAA-55AA810EF2F2}.Debug|ARM.ActiveCfg = Debug|ARM
+		{4C319615-006D-4199-9BAA-55AA810EF2F2}.Debug|ARM.Build.0 = Debug|ARM
+		{4C319615-006D-4199-9BAA-55AA810EF2F2}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{4C319615-006D-4199-9BAA-55AA810EF2F2}.Debug|ARM64.Build.0 = Debug|ARM64
+		{4C319615-006D-4199-9BAA-55AA810EF2F2}.Release|ARM.ActiveCfg = Release|ARM
+		{4C319615-006D-4199-9BAA-55AA810EF2F2}.Release|ARM.Build.0 = Release|ARM
+		{4C319615-006D-4199-9BAA-55AA810EF2F2}.Release|ARM64.ActiveCfg = Release|ARM64
+		{4C319615-006D-4199-9BAA-55AA810EF2F2}.Release|ARM64.Build.0 = Release|ARM64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B869B240-9700-4937-AC09-83CFFDA93820}
+	EndGlobalSection
+EndGlobal
