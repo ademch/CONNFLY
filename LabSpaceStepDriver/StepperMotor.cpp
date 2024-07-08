@@ -2,6 +2,7 @@
 #include "StepperMotor.h"
 #include "Command.h"
 
+// Theoretical background:
 // 220 deg per 90min -> 2.44 deg/min -> 1.358 1.8deg/min -> 0.022 1.8 deg/s or Pulses per second
 // Microstepping 20 increases pulses rate to 0.452 Pulses per second
 // Microstepping 5  increases pulses rate to 0.113 Pulses per second
@@ -9,28 +10,28 @@
 // From the other side
 // 16000000 pulses per second / 1024 prescaler / 256*256 (16 bit timer) = 0.23 Pulses per second
 
-
-// The function calculating acc and decc in 1s (S is in pulses)
-// iVelocity is provided in [pulses per second] (not in 1.8 per second)
-//
-// Pulses per second give ability to go lower than 1.8 deg per second using microstepping or servo)
-//
 // V=at, V=a*1
+// S is in pulses:
 // S=at^2/2 => S=vt^2/2 => S= V/2 * t^2, time of acceleartion is under 1 second =>
 // Number of steps when t aims to 1s equals S = V/2
 // t = sqrt(2*S/V), S = 1...V/2
-void StepMotor::MarchNSteps(unsigned int i1_8_StepCount, float _fVelocity, bool bCW)
+
+
+// The function calculating marching parameters including acc and decc in 1s
+// iVelocity is provided in [pulses per second] (not in 1.8 deg per second)
+//
+// PPS give ability to have finer control than 1.8 DPS (using e.g. microstepping or gearbox)
+//
+void StepMotor::MarchNSteps(unsigned int _i1_8_StepCount, float _fVelocity, bool _bCW)
 {
-	// save state
-	m1_8_StepCount = i1_8_StepCount;
-	mCW            = bCW;
-	bPrematureStop = false;
-
-	unsigned int iStepCount = i1_8_StepCount * STEP_MICROSTEP;
-
 	if (mState != IDLE) return;
 
-	fVelocity        = _fVelocity;
+	// save state
+	i1_8_StepCount = _i1_8_StepCount;
+	bCW            = _bCW;
+	fVelocity      = _fVelocity;
+
+	unsigned int iStepCount = _i1_8_StepCount * STEP_MICROSTEP;
 
 	// automatic trunc here produces desirable effect of determining whether the speed provides time for acceleration/deacceleration pulses
 	iACC_STEP_NUMBER = _fVelocity / 2.0f;
@@ -121,7 +122,7 @@ void StepMotor::timer_routine()
 			SendStepPulseToDrive();
 			//SetTimerVal(pgm_read_word_near(aSpeedProfile + iSeq));
 
-			// Calculate time needed to go frim the current to the next pulse
+			// Calculate time needed to go from the current to the next pulse
 			// fT = sqrt(2*S2/V) - sqrt(2*S1/V) => fT = (sqrt(S2) - sqrt(S1)) / sqrt(V/2)
 			float fT = (sqrtf(float(iSeq + 1)) - sqrtf(float(iSeq))) / sqrt(iACC_STEP_NUMBER);
 
@@ -132,11 +133,10 @@ void StepMotor::timer_routine()
 	}
 	if (mState == MARCH)
 	{
-		if ((iSeq >= iStepsMarch) || bPrematureStop)
+		if (iSeq >= iStepsMarch)
 		{
 			//Serial.println("march->dec");
 
-			bPrematureStop = false;
 			iSeq   = 0;
 			mState = DECC;
 		}
@@ -184,14 +184,14 @@ void StepMotor::timer_routine()
 	}
 }
 
-
+// Stop the rotation giving time to fully accelerate and fully deccelarate
 void StepMotor::MarchStopPremature()
 {
-	if (mState != IDLE) bPrematureStop = true;
+	if (mState != IDLE) iStepsMarch = 0;
 }
 
 
-
+// Stop now without decceleration
 void StepMotor::MarchStopHard()
 {
 	if (mState != IDLE)
@@ -203,7 +203,8 @@ void StepMotor::MarchStopHard()
 	}
 }
 
-
+// When the motor is stopping after stop command and the user has commanded
+// to resume rotation with the same params
 void StepMotor::CatchUpDecceleratingMotor()
 {
 	if (mState == DECC)

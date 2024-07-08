@@ -15,7 +15,6 @@
 //    24/8 = in 3*1.8 deg
 //
 
-
 enum MotorState { IDLE, ACC, MARCH, DECC };
 
 class StepMotor
@@ -35,10 +34,9 @@ public:
 
 	MotorState    mState;
 
-	unsigned int  m1_8_StepCount;
+	unsigned int  i1_8_StepCount;
 	float         fVelocity;
-	bool          mCW;
-	bool          bPrematureStop;
+	bool          bCW;
 
 	StepMotor(void(*_RotationDoneCallback)() = NULL):
    		      RotationDoneCallback(_RotationDoneCallback)
@@ -54,10 +52,8 @@ public:
 		iCurPos = 0;
 
 		iACC_STEP_NUMBER   = 0;
-		m1_8_StepCount     = 0;
-		mCW                = false;
-
-		bPrematureStop     = false;
+		i1_8_StepCount     = 0;
+		bCW                = false;
 	};
 
 	int      iCurPos;		// signed
@@ -66,7 +62,7 @@ public:
 	void MarchStopHard();
 	void CatchUpDecceleratingMotor();
 
-	void MarchNSteps(unsigned int i1_8_StepCount, float _fVelocity, bool bCW);
+	void MarchNSteps(unsigned int _i1_8_StepCount, float _fVelocity, bool _bCW);
 //	void MarchNStepsSteady(unsigned int i1_8_StepCount, float _fVelocity, bool bCW);
 
 	void timer_routine();	// timer compare interrupt service routine

@@ -4,7 +4,6 @@
 
 //#define DEBUG
 
-
 extern StepMotor stepMotor;
 extern ActiveState activeState;
 extern String aState[4];
@@ -13,55 +12,71 @@ extern int iEncoder;
 
 bool bSendEncoderFeedback = false;
 
+unsigned long iAlarmCounter;
+
 
 void PrintHelp()
 {
+	Serial.println("Firmware build date:");
+	Serial.println(__DATE__);
+	Serial.println(__TIME__);
+	Serial.println("Commands:");
 	Serial.println("help, ?:   this help");
 	Serial.println("GSTAT:     driver status");
 	Serial.println("GENCODER:  get encoder value");
-	Serial.println("USENCODER: GSTAT will report enoder values");
+	Serial.println("USENCODER: GSTAT will report encoder values");
 	Serial.println("USEPULSES: GSTAT will report pulse values (default)");
-	Serial.println("ENBLE:     enable line");
-	Serial.println("DSBLE:     disable line");
+	Serial.println("ENBLE:     enable driver");
+	Serial.println("DSBLE:     disable driver");
 	Serial.println("ROTATE:    start rotation [.3f speed 1.8deg/min] steps[1.8deg]");
 	Serial.println("RSTOP:     stop rotation");
 	Serial.println("RSTPHARD:  stop now");
 }
 
+// Called 10 times per second in an infinite loop
 void ProcessCommand()
 {
-	if (!digitalRead(PIN_STEPDRIVER_ALARM))
+	String strRequest;
+
+	if (!digitalRead(PIN_STEPDRIVER_ALARM))	// => alarm [active low]
 	{
-		if (activeState != STATE_ALARM)
+		// For some reason PIN_STEPDRIVER_ALARM may go accidentally low
+		// Knowing that the alarm is triggered only after 1s (~10 calls)
+		iAlarmCounter++;
+		if (iAlarmCounter > 10)
+		{
 			// PC knows we disable driver without command from "above"
 			digitalWrite(PIN_STEPDRIVER_EN, LOW);
 
-		stepMotor.MarchStopHard();
+			stepMotor.MarchStopHard();
 
-		activeState = STATE_ALARM;
+			activeState = STATE_ALARM;
 
-		if (Serial.available())
-		{
-			String strRequest;
-			strRequest = Serial.readStringUntil('\n');
-
-			if (strRequest == "GSTAT")
+			if (Serial.available())
 			{
-				// For a status request reply ALARM
-				Serial.print(aState[activeState]);
+				strRequest = Serial.readStringUntil('\n');
+
+				if (strRequest == "GSTAT")
+				{
+					// For a status request reply ALARM
+					Serial.print(aState[activeState]);
+				}
+				else
+					// For any other command (if any) reply error
+					Serial.print(RESPONCE_ERROR);
 			}
-			else
-				// For any other command (if any) reply error
-				Serial.print(RESPONCE_ERROR);
+			
+			return;
 		}
+
+		// There is no way to reset alarm state of the driver other than removing power from it,
+		// that is why there is no way to reset software alarm
 	}
-	else
+
+	iAlarmCounter = 0;	// reset alarm counter
+
 	if (Serial.available())
 	{
-		if (activeState == STATE_ALARM)
-			activeState = STATE_IDLE;		// RESET alarm state
-
-		String strRequest;
 		strRequest = Serial.readStringUntil('\n');
 
 		if (strRequest == "GSTAT")
@@ -76,7 +91,7 @@ void ProcessCommand()
 			else
 				Serial.print(aState[activeState]);
 		}
-		else if (strRequest == "GENCODER")
+		else if (strRequest == "GENCODER")	// TODO: delete?
 		{
 			char strBuff[20];
 			sprintf(strBuff, "%d\n", iEncoder);
@@ -116,7 +131,7 @@ void ProcessCommand()
 		}
 		else if (strRequest.startsWith("ROTATE "))			// [%.3f speed 1.8deg/min] steps[1.8deg]
 		{
-			// parse velocity in 1.8 deg per minute
+			// STEP: parse velocity in 1.8 deg per minute
 			strRequest.remove(0, 7);
 			float fVelocity1_8 = strRequest.toFloat();
 			fVelocity1_8 /= 60.0f;					     	// 1.8 deg per minute -> 1.8deg per second
@@ -124,7 +139,7 @@ void ProcessCommand()
 			float fVelocityPPS;
 			fVelocityPPS = fVelocity1_8 * STEP_MICROSTEP;	// 1.8 deg per second -> pulses per second
 
-			if ((fVelocityPPS < 0.25f) || (fVelocityPPS > 90.0f * STEP_MICROSTEP))
+			if ((fVelocityPPS < 0.25f) || (fVelocityPPS > 90.0f * STEP_MICROSTEP))	// should we pass ratio to be able to check the angle???
 			{
 				Serial.print(RESPONCE_ERROR_HSPEED);
 				return;
@@ -135,27 +150,18 @@ void ProcessCommand()
 				Serial.println(fVelocityPPS);
 			#endif
 
-			// parse number of 1.8 steps
+			// STEP: parse number of 1.8 steps
 			strRequest.remove(0, strRequest.indexOf(' ') + 1);
 			int iSteps1_8 = strRequest.toInt();
 
 			bool bCW = (iSteps1_8 > 0) ? true : false;
 			iSteps1_8 = abs(iSteps1_8);
 
-			if ((iSteps1_8 < 0) || (iSteps1_8 > 3600 ))
+			if (iSteps1_8 > 3600)
 			{
 				Serial.print(RESPONCE_ERROR_STEPS);
 				return;
 			}
-
-			#ifdef DEBUG
-				Serial.print("iSteps1_8=");
-				Serial.println(iSteps1_8);
-			#endif
-			#ifdef DEBUG
-				Serial.print("bCW=");
-				Serial.println(bCW);
-			#endif
 
 			// experimental block
 			if (activeState == STATE_ROTT)
@@ -164,7 +170,9 @@ void ProcessCommand()
 
 				// if the motor is deccelerating and the new request is with the same characteristics
 				if ( (stepMotor.mState == DECC) &&
-					((iSteps1_8 == stepMotor.m1_8_StepCount) && (fVelocityPPS == stepMotor.fVelocity) && (stepMotor.mCW == bCW)) )
+					((iSteps1_8 == stepMotor.i1_8_StepCount) &&
+					(abs(fVelocityPPS - stepMotor.fVelocity) < 0.001) &&
+					(stepMotor.bCW == bCW)) )
 				{
 					stepMotor.CatchUpDecceleratingMotor();
 
@@ -207,7 +215,9 @@ void ProcessCommand()
 
 void RotationDoneCallback()
 {
-	if (digitalRead(PIN_STEPDRIVER_ALARM))	// active LOW
+	// Make sure the logic stays clear- the state is changed to STATE_IDLE only from STATE_ROTT
+	// If the state is STATE_ALARM or any other then make no state change
+	if (activeState == STATE_ROTT)
 		activeState = STATE_IDLE;
 }
 

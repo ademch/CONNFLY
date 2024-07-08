@@ -10,6 +10,8 @@ String aState[4] = { "EHLO\n", "IDLE %d\n", "ROTT %d\n", "ALRM\n"};
 
 ActiveState activeState;
 
+extern unsigned long iAlarmCounter;
+
 
 void RotationDoneCallback();
 
@@ -58,14 +60,14 @@ void setup() {
 
 
 #pragma region Configure stepdriver pins
-	digitalWrite(PIN_STEPDRIVER_EN,	   LOW);		// pull-up disabled
-	pinMode(PIN_STEPDRIVER_EN,         OUTPUT);     // switch Low
+	digitalWrite(PIN_STEPDRIVER_EN,	   LOW);
+	pinMode(PIN_STEPDRIVER_EN,         OUTPUT);
 
-	digitalWrite(PIN_STEPDRIVER_STEP,  HIGH);		// enable-pull up
-	pinMode(PIN_STEPDRIVER_STEP,       OUTPUT);		// switch High
+	digitalWrite(PIN_STEPDRIVER_STEP,  LOW);
+	pinMode(PIN_STEPDRIVER_STEP,       OUTPUT);
 
-	digitalWrite(PIN_STEPDRIVER_DIR,   LOW);		// disable pull-up
-	pinMode(PIN_STEPDRIVER_DIR,        OUTPUT);     // switch Low
+	digitalWrite(PIN_STEPDRIVER_DIR,   LOW);
+	pinMode(PIN_STEPDRIVER_DIR,        OUTPUT);
 
 	pinMode(PIN_STEPDRIVER_ALARM,      INPUT_PULLUP);
 
@@ -107,6 +109,7 @@ void setup() {
 
 	activeState = STATE_IDLE;
 
+	iAlarmCounter = 0;
 }
 
 // the loop function runs over and over again forever
@@ -114,5 +117,5 @@ void loop() {
 
 	ProcessCommand();
 
-	delay(10);
+	delay(80);
 }

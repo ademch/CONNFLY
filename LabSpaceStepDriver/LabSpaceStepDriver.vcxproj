@@ -90,6 +90,12 @@
   <PropertyGroup>
     <DebuggerFlavor>VisualMicroDebugger</DebuggerFlavor>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <IncludePath>$(ProjectDir)..\..\..\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\cores\\arduino;$(ProjectDir)..\..\..\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\variants\\mega;$(ProjectDir)..\..\..\program files (x86)\arduino\hardware\tools\avr\lib\gcc\avr\7.3.0\include;$(ProjectDir)..\..\..\program files (x86)\arduino\hardware\tools\avr\lib\gcc\avr\7.3.0\include-fixed;$(ProjectDir)..\..\..\program files (x86)\arduino\hardware\tools\avr\avr\include</IncludePath>
+    <RemoteCCompileToolExe>$(ProjectDir)..\..\..\\Program Files (x86)\\Arduino\\hardware\\tools\\avr\bin\avr-g++</RemoteCCompileToolExe>
+    <RemoteCppCompileToolExe>$(ProjectDir)..\..\..\\Program Files (x86)\\Arduino\\hardware\\tools\\avr\bin\avr-g++</RemoteCppCompileToolExe>
+    <ValidateArchitecture>false</ValidateArchitecture>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <ClCompile>
       <AdditionalIncludeDirectories>C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\cores\\arduino;C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\variants\\mega;c:\program files (x86)\arduino\hardware\tools\avr\lib\gcc\avr\7.3.0\include;c:\program files (x86)\arduino\hardware\tools\avr\lib\gcc\avr\7.3.0\include-fixed;c:\program files (x86)\arduino\hardware\tools\avr\avr\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -104,7 +110,26 @@
       <PreprocessorDefinitions>_VMICRO_INTELLISENSE;__AVR_atmega2560__;__AVR_ATmega2560__;F_CPU=16000000L;ARDUINO=108018;ARDUINO_AVR_MEGA2560;ARDUINO_ARCH_AVR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\cores\\arduino;$(ProjectDir)..\..\..\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\variants\\mega;$(ProjectDir)..\..\..\program files (x86)\arduino\hardware\tools\avr\lib\gcc\avr\7.3.0\include;$(ProjectDir)..\..\..\program files (x86)\arduino\hardware\tools\avr\lib\gcc\avr\7.3.0\include-fixed;$(ProjectDir)..\..\..\program files (x86)\arduino\hardware\tools\avr\avr\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <GccToolChain>$(ProjectDir)..\..\..\\Program Files (x86)\\Arduino\\hardware\\tools\\avr\bin\avr-g++</GccToolChain>
+      <CppLanguageStandard>gnu++11</CppLanguageStandard>
+      <CLanguageStandard>gnu11</CLanguageStandard>
+      <CAdditionalWarning />
+      <CppAdditionalWarning />
+      <ForcedIncludeFiles>$(ProjectDir)..\..\..\program files (x86)\microsoft visual studio\2017\community\common7\ide\extensions\q52jvj0w.ze5\Micro Platforms\default\vm-intelli-pre.h;$(ProjectDir)..\..\..\Users\selga\AppData\Local\Temp\VMBuilds\LabSpaceStepDriver\mega_atmega2560\Debug\.vmintelli\74f5253bacf42840cc789aacf2d66273\vm-intelli-gcc-defines.h;$(ProjectDir)..\..\..\program files (x86)\microsoft visual studio\2017\community\common7\ide\extensions\q52jvj0w.ze5\Micro Platforms\default\vm-intelli-post.h;$(ProjectDir)__vm\.LabSpaceStepDriver.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <UndefineAllPreprocessorDefinitions>true</UndefineAllPreprocessorDefinitions>
+      <IgnoreStandardIncludePath>true</IgnoreStandardIncludePath>
+      <PreprocessorDefinitions>_VMICRO_INTELLISENSE;__AVR_atmega2560__;__AVR_ATmega2560__;F_CPU=16000000L;ARDUINO=108018;ARDUINO_AVR_MEGA2560;ARDUINO_ARCH_AVR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties config.Debug.customdebug_mega_atmega2560_debugger_type="universal" />
+    </VisualStudio>
+  </ProjectExtensions>
 </Project>
