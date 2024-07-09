@@ -105,6 +105,17 @@ void CStaticPlot::OnPaint()
 		}
 		break;
 	}
+	// Draw the current degrees value  START---------------------------------
+	RECT rect;
+	rect.left   = 50;  rect.right  = 150;
+	rect.bottom = 220; rect.top    = 190;
+
+	SetBkMode(dc, TRANSPARENT);
+	SetTextColor(dc, 0x00136A0A);
+	char strDeg[10] = {0};
+	sprintf(strDeg, "%4d deg", round(AngleGlobalCoordinatesDeg()) );
+	DrawText(dc, strDeg, -1, & rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	// Draw the current degrees value  END-----------------------------------
 	
 
 	int iCircleRadius = (rc.right-40)/2;
