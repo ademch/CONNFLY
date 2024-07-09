@@ -59,7 +59,7 @@ _SERIAL_PORT_CANCELIO::~_SERIAL_PORT_CANCELIO ()
 _SERIAL_PORT_CANCELIO _SerialPortCancelIO;
 
 
-/* //////// Exception handling code */
+/*  Exception handling code */
 
 void AfxThrowSerialException(DWORD dwError /* = 0 */)
 {
@@ -132,7 +132,7 @@ IMPLEMENT_DYNAMIC(CSerialException, CException)
 #endif
 
 
-/* //////// The actual serial port code */
+/*  The actual serial port code */
 
 CSerialPort::CSerialPort ()
 {
