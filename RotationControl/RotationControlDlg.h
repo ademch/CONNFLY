@@ -53,12 +53,17 @@ protected:
 
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
+	afx_msg BOOL OnDeviceChange(UINT, DWORD);
 	DECLARE_MESSAGE_MAP();
 
 	void LoadControlBitmaps();
 	void CreateGUIToolTips();
 
 	AsynchCommunicator *asynchCommunicator;
+	TCHAR* strCOMportFriendlyName[100];
+	void RegistryGetCOMPortNames();
+	void RegistryFreeCOMPortNames();
+	void UpdateCOMPortList();
 
 public:
 	CComboBox		m_comboPorts;
@@ -91,6 +96,9 @@ public:
 	void EnableDlgButtons(BOOL bEnable);
 	void EnableCommandButtons(BOOL bEnable);
 	void EnablePositioningButtons(BOOL bEnable);
+	LRESULT OnAsynchFinished(WPARAM wParam, LPARAM lParam);
+
+	virtual BOOL PreTranslateMessage(MSG* pMsg);
 
 	//afx_msg void OnNMCustomdrawCustom2(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnBnClickedButtonConnect();
@@ -102,9 +110,6 @@ public:
 	afx_msg void OnBnClickedCheckHardstop();
 	afx_msg void OnBnClickedCheckEnableDriver();
 
-	LRESULT OnAsynchFinished(WPARAM wParam, LPARAM lParam);
-
-	virtual BOOL PreTranslateMessage(MSG* pMsg);
 
 	afx_msg void OnTimer(UINT nIDEvent);
 	afx_msg void OnClose();

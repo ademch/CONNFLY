@@ -7,6 +7,8 @@
 #include "ControllerCommands.h"
 #include <ctime>
 #include <direct.h>
+#include <atlbase.h>
+#include <dbt.h>
 
 #ifdef _DEBUG
 	#define new DEBUG_NEW
@@ -89,6 +91,7 @@ BEGIN_MESSAGE_MAP(CRotationControlDlg, CDialog)
 	ON_WM_PAINT()
 	ON_WM_TIMER()
 	ON_WM_QUERYDRAGICON()
+	ON_WM_DEVICECHANGE()
 	ON_WM_CLOSE()
 	ON_COMMAND(IDC_BUTTON_JOG_LEFT  | 1 << 13,  OnBnDownButtonJogLeft)
 	ON_COMMAND(IDC_BUTTON_JOG_LEFT  | 1 << 14,  OnBnUpButtonJogLeft)
@@ -281,14 +284,37 @@ BOOL CRotationControlDlg::OnInitDialog()
 	EnableDlgButtons(FALSE);
 
 	UpdateLegend();
+	RegistryGetCOMPortNames();
 
 	printfConsole(_T("Scanning COM ports..."));
 
+		int iCONNFLYport = -1;
 		std::vector<CString> ports = asynchCommunicator->EnumSerialPorts();
 		for (std::vector<CString>::iterator it = ports.begin(); it != ports.end(); it++)
-			m_comboPorts.AddString(*it);
-		if (ports.size())
-			m_comboPorts.SetCurSel(m_comboPorts.GetCount()-1);
+		{
+			// Identify COM port number
+			unsigned int iPortNumber=1;
+			sscanf(*it, "COM%d", &iPortNumber);
+
+			if ((iPortNumber < 100) && strCOMportFriendlyName[iPortNumber])
+			{
+				m_comboPorts.AddString(*it + " (CONNFLY)");
+				
+				// make this port selected by default
+				iCONNFLYport = m_comboPorts.GetCount()-1;
+
+				m_btnConnect.EnableWindow(TRUE);
+			}
+			else
+				m_comboPorts.AddString(*it);
+		}
+
+		if (iCONNFLYport < 0)
+			// CONNFLY was not found
+			iCONNFLYport = m_comboPorts.GetCount()-1;
+
+		if (iCONNFLYport >= 0)
+			m_comboPorts.SetCurSel(iCONNFLYport);
 
 	printfConsole("%i ports found", ports.size());
 
@@ -390,6 +416,28 @@ void CRotationControlDlg::UpdateLegend()
 HCURSOR CRotationControlDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
+}
+// The system calls this function when device list updates
+BOOL CRotationControlDlg::OnDeviceChange(UINT nEventType, DWORD dwData)
+{
+	if ( ((nEventType == DBT_DEVICEARRIVAL) || (nEventType == DBT_DEVICEREMOVECOMPLETE)) &&
+		 (!asynchCommunicator->serialPortIsOpen()) ) // react only if we have not already connected
+	{
+		PDEV_BROADCAST_HDR devHdr = (PDEV_BROADCAST_HDR)dwData;
+		if (devHdr->dbch_devicetype == DBT_DEVTYP_PORT)
+		{
+			//PDEV_BROADCAST_PORT portInterface; TODO handle disconnection of connected interface
+			//portInterface = (PDEV_BROADCAST_PORT)devHdr;
+
+			RegistryFreeCOMPortNames();
+
+			RegistryGetCOMPortNames();
+
+			UpdateCOMPortList();
+		}
+	}
+
+	return TRUE;
 }
 
 //void CRotationControlDlg::OnNMCustomdrawCustom2(NMHDR *pNMHDR, LRESULT *pResult)
@@ -500,6 +548,7 @@ void CRotationControlDlg::OnClose()
 	if (!pFileLog) fclose(pFileLog);
 
 	CDialog::OnClose();
+	RegistryFreeCOMPortNames();
 }
 
 LRESULT CRotationControlDlg::OnAsynchFinished(WPARAM wParam, LPARAM lParam)
@@ -875,4 +924,90 @@ void CRotationControlDlg::OnBnClickedButtonLog()
 
 	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 	ShellExecute(NULL, "open", str.c_str(), NULL, NULL, SW_SHOWNORMAL);
+}
+
+void CRotationControlDlg::RegistryGetCOMPortNames()
+{
+	memset(strCOMportFriendlyName, 0, 100*sizeof(TCHAR*));
+	
+	CRegKey Key;
+	CString strRegPath(_T("SYSTEM\\CurrentControlSet\\Enum\\USB\\Vid_1a86&Pid_7523"));
+	if (Key.Open(HKEY_LOCAL_MACHINE, strRegPath, KEY_READ) == ERROR_SUCCESS)
+	{
+		DWORD len = MAX_PATH;
+		TCHAR strName[MAX_PATH] = {0};
+		for (int i = 0; Key.EnumKey(i, strName, &len) == ERROR_SUCCESS; i++)
+		{
+			CRegKey KeyChild;
+			if (KeyChild.Open(HKEY_LOCAL_MACHINE, strRegPath + _T("\\") + strName, KEY_READ) == ERROR_SUCCESS)
+			{
+				ULONG lenChild = MAX_PATH;
+				TCHAR strValue[MAX_PATH] = {0};
+				KeyChild.QueryStringValue("FriendlyName", strValue, &lenChild);
+
+				char* ptr = strstr(strValue, "(COM");
+				if (ptr != NULL)
+				{
+					ptr += 4;	// the length of "(COM" 
+					unsigned int iNumber = atoi(ptr);
+					if (iNumber < 100)
+					{
+						strCOMportFriendlyName[iNumber] = new char[strlen(strValue)+1];
+						strcpy(strCOMportFriendlyName[iNumber], strValue);
+					}
+				}
+			}
+			KeyChild.Close();
+			len = MAX_PATH;
+		}
+		Key.Close();
+	}
+}
+
+void CRotationControlDlg::RegistryFreeCOMPortNames()
+{
+	for (int i=0; i<100; i++) {
+		delete strCOMportFriendlyName[i];
+		strCOMportFriendlyName[i] = 0;
+	}
+}
+
+// Call RegistryGetCOMPortNames beforehand
+void CRotationControlDlg::UpdateCOMPortList()
+{
+	int iCONNFLYport = -1;
+	std::vector<CString> ports = asynchCommunicator->EnumSerialPorts();
+
+	// ComboBox is updated dynamically on device connect/disconnect
+	m_comboPorts.ResetContent();
+
+	for (std::vector<CString>::iterator it = ports.begin(); it != ports.end(); it++)
+	{
+		// Identify COM port number
+		unsigned int iPortNumber=1;
+		sscanf(*it, "COM%d", &iPortNumber);
+
+		// if the port is found in the list of Connfly registered devices
+		if ((iPortNumber < 100) && strCOMportFriendlyName[iPortNumber])
+		{
+			m_comboPorts.AddString(*it + " (CONNFLY)");
+			
+			// make this port selected by default
+			iCONNFLYport = m_comboPorts.GetCount()-1;
+
+			m_btnConnect.EnableWindow(TRUE);
+		}
+		else
+			m_comboPorts.AddString(*it);
+	}
+
+	if (iCONNFLYport < 0)
+	{
+		// CONNFLY was not found
+		iCONNFLYport = m_comboPorts.GetCount()-1;
+		m_btnConnect.EnableWindow(FALSE);
+	}
+
+	if (iCONNFLYport >= 0)
+		m_comboPorts.SetCurSel(iCONNFLYport);
 }
