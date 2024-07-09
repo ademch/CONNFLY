@@ -163,7 +163,7 @@ BOOL AsynchCommunicator::StepDriverRotateRaw(float fRotationSpeed, int iAngle_1_
 
 BOOL AsynchCommunicator::StepDriverJog(int cw)
 {
-	int      iAngle_1_8 = 30;
+	int      iAngle_1_8 = 100;
 	if (!cw) iAngle_1_8 = -iAngle_1_8;
 
 	return StepDriverRotateRaw(dlg->m_iJoggingSpeed, iAngle_1_8);
