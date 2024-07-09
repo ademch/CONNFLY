@@ -75,10 +75,10 @@ IDD_ROTATIONCONTROL_DIALOG DIALOGEX 0, 0, 452, 288
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_POPUP | 
     WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_APPWINDOW
-CAPTION "CONNFLY v1.0.3"
+CAPTION "CONNFLY v1.0.4"
 FONT 8, "MS Shell Dlg", 400, 0, 0xCC
 BEGIN
-    PUSHBUTTON      "Connect",IDC_BUTTON_CONNECT,331,54,50,14
+    PUSHBUTTON      "Connect",IDC_BUTTON_CONNECT,331,54,50,14,WS_DISABLED
     PUSHBUTTON      "Disconnect",IDC_BUTTON_DISCONNECT,383,54,50,14,
                     WS_DISABLED
     COMBOBOX        IDC_COMBO_PORTS,331,37,102,77,CBS_DROPDOWNLIST | 
@@ -88,7 +88,7 @@ BEGIN
     CONTROL         "PowerOn",IDC_CHECK_POWERON,"Button",BS_AUTOCHECKBOX | 
                     BS_BITMAP | BS_PUSHLIKE | WS_TABSTOP,272,43,40,36
     EDITTEXT        IDC_EDIT_LEFT_LIMIT,24,177,24,14,ES_RIGHT | 
-                    ES_AUTOHSCROLL | ES_NUMBER
+                    ES_AUTOHSCROLL
     EDITTEXT        IDC_EDIT_RIGHT_LIMIT,163,177,24,14,ES_RIGHT | 
                     ES_AUTOHSCROLL | ES_NUMBER
     EDITTEXT        IDC_EDIT_SOLAR_PERIOD,60,205,24,14,ES_RIGHT | 
@@ -166,7 +166,7 @@ BEGIN
             VALUE "LegalCopyright", "KPI.  All rights reserved."
             VALUE "OriginalFilename", "RotationControl.exe"
             VALUE "ProductName", "RotationControl"
-            VALUE "ProductVersion", "1.0.0.3"
+            VALUE "ProductVersion", "1.0.4.0"
         END
     END
     BLOCK "VarFileInfo"
