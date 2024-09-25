@@ -132,7 +132,7 @@ void CRotationControlDlg::printfLog(const char* fmt, ...)
 
 	SYSTEMTIME systime;
 	GetSystemTime(&systime);
-	fprintf(pFileLog, "%04d-%02d-%02d %02d:%02d:%02d   ",
+	fprintf(pFileLog, "%04d-%02d-%02d %02d:%02d:%02d\t",
 		    systime.wYear, systime.wMonth, systime.wDay, systime.wHour, systime.wMinute, systime.wSecond);
 
 	va_list ap;
@@ -376,9 +376,9 @@ void CRotationControlDlg::UpdateLegend()
 			m_Plot.m_iRightLimitDeg = m_iRightLimit;
 
 			printfLog("Starting experiment ->\n");
-			printfLog("   Left limit: %d deg, Right Limit: %d deg\n", m_iLeftLimit, m_iRightLimit);
-			printfLog("   Solar period: %d min, Number of cycles: %d\n", m_iSolarPeriod, m_iOrbitalCycles);
-			printfLog("   Jogging speed: %d 1.8deg/min, Servo ratio %d:1\n", m_iJoggingSpeed, m_iServoRatio);
+			printfLog("\tLeft limit: %d deg, Right Limit: %d deg\n", m_iLeftLimit, m_iRightLimit);
+			printfLog("\tSolar period: %d min, Number of cycles: %d\n", m_iSolarPeriod, m_iOrbitalCycles);
+			printfLog("\tJogging speed: %d 1.8deg/min, Servo ratio %d:1\n", m_iJoggingSpeed, m_iServoRatio);
 		}
 		else if ((solarProgramState.iProgramSequence >= PROGRAM_JOG_TO_START_COMPLETE) &&
                  (solarProgramState.iProgramSequence <  PROGRAM_ROTATION_SEQ_COMPLETE))
@@ -844,7 +844,7 @@ void CRotationControlDlg::OnTimer(UINT nIDEvent)
 
 		// Log
 		if ((iSecondsRemain % 10) == 0)
-			printfLog("     Angle: %3d deg\n", round(m_Plot.AngleGlobalCoordinatesDeg()) );
+			printfLog("\tAngle (deg):\t%3d\n", round(m_Plot.AngleGlobalCoordinatesDeg()) );
 
 		// Countdown dipslay
 		int iMinutes = iSecondsRemain / 60;	
